@@ -1,5 +1,6 @@
 "use strict";
 const { Model } = require("sequelize");
+const useractivity = require("./useractivity");
 module.exports = (sequelize, DataTypes) => {
   class user extends Model {
     /**
@@ -10,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       user.hasMany(models.favorite);
+      user.belongsToMany(models.activity, {
+        through: "useractivity",
+        foreignKey: "userId",
+      });
     }
   }
   user.init(
