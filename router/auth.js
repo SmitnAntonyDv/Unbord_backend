@@ -123,3 +123,19 @@ router.get("/me", authMiddleware, async (req, res) => {
   delete req.user.dataValues["password"];
   res.status(200).send({ ...req.user.dataValues });
 });
+
+router.get("/confirmation/:token", async (req, res) => {
+  try {
+    const { id } = validatingEmail(req.params.token);
+    const updatedUser = await User.update(
+      { verified: true },
+      { where: { id } }
+    );
+  } catch (e) {
+    res.send("error");
+  }
+
+  return res.redirect(API_URL);
+});
+
+module.exports = router;
