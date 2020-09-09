@@ -117,3 +117,9 @@ router.post("/signup", async (req, res) => {
     return res.status(400).send({ message: "Something went wrong, sorry" });
   }
 });
+
+// don't send back the password hash
+router.get("/me", authMiddleware, async (req, res) => {
+  delete req.user.dataValues["password"];
+  res.status(200).send({ ...req.user.dataValues });
+});
