@@ -48,8 +48,14 @@ router.post("/login", async (req, res, next) => {
 
 // CREATE a new user
 router.post("/signup", async (req, res) => {
-  const { email, password, firstName, lastName, username } = req.body.data;
-  if (!email || !password || !firstName || !lastName || username) {
+  const {
+    email,
+    password,
+    firstName,
+    lastName,
+    userName,
+  } = req.body.signUpData;
+  if (!email || !password || !firstName || !lastName || !userName) {
     return res.status(400).send("Please provide an email, password and a name");
   }
 
@@ -57,12 +63,12 @@ router.post("/signup", async (req, res) => {
     const newUser = await User.create({
       firstName,
       lastName,
+      userName,
       email,
-      username,
       password: bcrypt.hashSync(password, SALT_ROUNDS),
       verified: false,
     });
-
+    console.log("my new User", newUser);
     // const eToken = emailToken({ id: newUser.id });
     // // created encrypted email link
     // const url = `${BACKEND_API}/auth/confirmation/${eToken}`;
@@ -105,14 +111,13 @@ router.post("/signup", async (req, res) => {
     //   }
     // });
 
-    res.status(201).json(newUser);
+    res.status(201).send(newUser);
   } catch (error) {
     if (error.name === "SequelizeUniqueConstraintError") {
       return res
         .status(400)
         .send({ message: "There is an existing account with this email" });
     }
-
     return res.status(400).send({ message: "Something went wrong, sorry" });
   }
 });
