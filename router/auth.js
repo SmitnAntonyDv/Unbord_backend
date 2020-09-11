@@ -56,9 +56,8 @@ router.post("/signup", async (req, res) => {
     userName,
   } = req.body.signUpData;
   if (!email || !password || !firstName || !lastName || !userName) {
-    return res.status(400).send("Please provide an email, password and a name");
+    return res.status(400).send("Please fillout all required fields");
   }
-
   try {
     const newUser = await User.create({
       firstName,
