@@ -48,8 +48,8 @@ router.post("/login", async (req, res, next) => {
 
 // CREATE a new user
 router.post("/signup", async (req, res) => {
-  const { email, password, firstName, lastName, title, about } = req.body.data;
-  if (!email || !password || !firstName || !lastName) {
+  const { email, password, firstName, lastName, username } = req.body.data;
+  if (!email || !password || !firstName || !lastName || username) {
     return res.status(400).send("Please provide an email, password and a name");
   }
 
@@ -58,55 +58,54 @@ router.post("/signup", async (req, res) => {
       firstName,
       lastName,
       email,
+      username,
       password: bcrypt.hashSync(password, SALT_ROUNDS),
-      title,
-      about,
       verified: false,
     });
 
-    const eToken = emailToken({ id: newUser.id });
-    // created encrypted email link
-    const url = `${BACKEND_API}/auth/confirmation/${eToken}`;
+    // const eToken = emailToken({ id: newUser.id });
+    // // created encrypted email link
+    // const url = `${BACKEND_API}/auth/confirmation/${eToken}`;
 
-    const transporter = nodemailer.createTransport({
-      service: "outlook",
-      auth: {
-        user: `${AUTH_USER}`,
-        pass: `${AUTH_PASS}`,
-      },
-    });
+    // const transporter = nodemailer.createTransport({
+    //   service: "outlook",
+    //   auth: {
+    //     user: `${AUTH_USER}`,
+    //     pass: `${AUTH_PASS}`,
+    //   },
+    // });
 
-    const confirmationEmailTemplate = {
-      from: `${AUTH_USER}`, // sender address
-      to: `${email}`, // list of receivers
-      subject: `Hello, ${firstName}`, // Subject line
-      text: `Thank you for registering an account with space travel agency. 
-        Please confirm your email by clicking the following link:${url}`, // plain text body
-      html: `      
-        <div 
-          style=
-          padding: 5px 5px 5px 5px;
-          line-spacing: 2rem;
-          border="0";
-          width="600";
-        >
-          <h2>Dear ${firstName}, thank you for joining the Traveler's Diary community!</h2>
-          <h3>IMPORTANT:</h3>
-          <p>Please confirm your email by clicking the following link:<a href=${url}>${url}</a></p>
-        </div>
-  
-        `, // html body
-    };
+    // const confirmationEmailTemplate = {
+    //   from: `${AUTH_USER}`, // sender address
+    //   to: `${email}`, // list of receivers
+    //   subject: `Hello, ${firstName}`, // Subject line
+    //   text: `Thank you for registering an account with space travel agency.
+    //     Please confirm your email by clicking the following link:${url}`, // plain text body
+    //   html: `
+    //     <div
+    //       style=
+    //       padding: 5px 5px 5px 5px;
+    //       line-spacing: 2rem;
+    //       border="0";
+    //       width="600";
+    //     >
+    //       <h2>Dear ${firstName}, thank you for joining the Traveler's Diary community!</h2>
+    //       <h3>IMPORTANT:</h3>
+    //       <p>Please confirm your email by clicking the following link:<a href=${url}>${url}</a></p>
+    //     </div>
 
-    transporter.sendMail(confirmationEmailTemplate, function (err, data) {
-      if (err) {
-        console.log("Error Occurs", err);
-      } else {
-        console.log("Email sent!!!");
-      }
-    });
+    //     `, // html body
+    // };
 
-    res.status(201).json("Success");
+    // transporter.sendMail(confirmationEmailTemplate, function (err, data) {
+    //   if (err) {
+    //     console.log("Error Occurs", err);
+    //   } else {
+    //     console.log("Email sent!!!");
+    //   }
+    // });
+
+    res.status(201).json(newUser);
   } catch (error) {
     if (error.name === "SequelizeUniqueConstraintError") {
       return res
