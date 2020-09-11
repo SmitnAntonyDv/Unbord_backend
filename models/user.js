@@ -1,6 +1,6 @@
-"use strict";
-const { Model } = require("sequelize");
-const useractivity = require("./useractivity");
+'use strict';
+const { Model } = require('sequelize');
+const useractivity = require('./useractivity');
 module.exports = (sequelize, DataTypes) => {
   class user extends Model {
     /**
@@ -12,8 +12,8 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       user.hasMany(models.favorite);
       user.belongsToMany(models.activity, {
-        through: "useractivity",
-        foreignKey: "userId",
+        through: 'useractivity',
+        foreignKey: 'userId',
       });
     }
   }
@@ -43,12 +43,12 @@ module.exports = (sequelize, DataTypes) => {
       },
       verified: {
         type: DataTypes.BOOLEAN,
-        allowNull: false,
+        allowNull: true,
       },
     },
     {
       sequelize,
-      modelName: "user",
+      modelName: 'user',
     }
   );
   return user;
