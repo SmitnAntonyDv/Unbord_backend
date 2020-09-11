@@ -1,27 +1,27 @@
-const { Router } = require('express');
-const { toJWT, emailToken, validatingEmail } = require('../auth/jwt');
-const authMiddleware = require('../auth/middleware');
-const bcrypt = require('bcrypt');
+const { Router } = require("express");
+const { toJWT, emailToken, validatingEmail } = require("../auth/jwt");
+const authMiddleware = require("../auth/middleware");
+const bcrypt = require("bcrypt");
 const {
   SALT_ROUNDS,
   BACKEND_API,
   API_URL,
   AUTH_USER,
   AUTH_PASS,
-} = require('../config/constants');
-const nodemailer = require('nodemailer');
-const User = require('../models').user;
+} = require("../config/constants");
+const nodemailer = require("nodemailer");
+const User = require("../models").user;
 
 const router = new Router();
 
 // login logic
-router.post('/login', async (req, res, next) => {
+router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password || email === ' ' || password === ' ') {
+    if (!email || !password || email === " " || password === " ") {
       res
         .status(400)
-        .send({ message: 'Please supply a valid email and password' });
+        .send({ message: "Please supply a valid email and password" });
     }
 
     const user = await User.findOne({
@@ -29,16 +29,16 @@ router.post('/login', async (req, res, next) => {
     });
     if (!user || !bcrypt.compareSync(password, user.password)) {
       return res.status(400).send({
-        message: 'User with that email not found or password incorrect',
+        message: "User with that email not found or password incorrect",
       });
     }
     if (!user.verified) {
       return res.status(403).send({
         message:
-          'You must verify your account before logging in. Please check your email.',
+          "You must verify your account before logging in. Please check your email.",
       });
     }
-    delete user.dataValues['password']; // don't send back the password hash
+    delete user.dataValues["password"]; // don't send back the password hash
     const token = toJWT({ userId: user.id });
     res.send({ token, ...user.dataValues });
   } catch (e) {
@@ -47,7 +47,7 @@ router.post('/login', async (req, res, next) => {
 });
 
 // CREATE a new user
-router.post('/signup', async (req, res, next) => {
+router.post("/signup", async (req, res) => {
   const {
     email,
     password,
@@ -55,20 +55,18 @@ router.post('/signup', async (req, res, next) => {
     lastName,
     userName,
   } = req.body.signUpData;
-  console.log('what this?', req.body);
   if (!email || !password || !firstName || !lastName || !userName) {
-    return res.status(400).send('Please fillout all required fields');
+    return res.status(400).send("Please fillout all required fields");
   }
   try {
     const newUser = await User.create({
       firstName,
       lastName,
-      email,
       userName,
+      email,
       password: bcrypt.hashSync(password, SALT_ROUNDS),
       verified: false,
     });
-
     // const eToken = emailToken({ id: newUser.id });
     // // created encrypted email link
     // const url = `${BACKEND_API}/auth/confirmation/${eToken}`;
@@ -113,23 +111,28 @@ router.post('/signup', async (req, res, next) => {
 
     res.status(201).send(newUser);
   } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
+    if (error.name === "SequelizeUniqueConstraintError") {
+      const user = await User.findOne({ where: { userName } });
+      if (user) {
+        return res
+          .status(400)
+          .send({ message: "There is an existing account with this username" });
+      }
       return res
         .status(400)
-        .send({ message: 'There is an existing account with this email' });
+        .send({ message: "There is an existing account with this email" });
     }
-
-    return res.status(400).send({ message: 'Something went wrong, sorry' });
+    return res.status(400).send({ message: "Something went wrong, sorry" });
   }
 });
 
 // don't send back the password hash
-router.get('/me', authMiddleware, async (req, res) => {
-  delete req.user.dataValues['password'];
+router.get("/me", authMiddleware, async (req, res) => {
+  delete req.user.dataValues["password"];
   res.status(200).send({ ...req.user.dataValues });
 });
 
-router.get('/confirmation/:token', async (req, res) => {
+router.get("/confirmation/:token", async (req, res) => {
   try {
     const { id } = validatingEmail(req.params.token);
     const updatedUser = await User.update(
@@ -137,7 +140,7 @@ router.get('/confirmation/:token', async (req, res) => {
       { where: { id } }
     );
   } catch (e) {
-    res.send('error');
+    res.send("error");
   }
 
   return res.redirect(API_URL);
